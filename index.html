@@ -872,6 +872,14 @@
               Next Follow-up Action
               <textarea name="nextAction" required placeholder="What should the service team do next?"></textarea>
             </label>
+            <label class="wide">
+              Case Attachment
+              <input name="attachment" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt">
+            </label>
+            <div class="info wide hidden" id="attachmentPreview">
+              <span>Current Attachment</span>
+              <strong id="attachmentPreviewLink"></strong>
+            </div>
             <div class="actions">
               <span class="form-mode" id="formMode">Creating a new case</span>
               <div class="button-row">
@@ -992,6 +1000,8 @@
     const saveComplaint = document.getElementById("saveComplaint");
     const cancelEdit = document.getElementById("cancelEdit");
     const deleteCurrentCase = document.getElementById("deleteCurrentCase");
+    const attachmentPreview = document.getElementById("attachmentPreview");
+    const attachmentPreviewLink = document.getElementById("attachmentPreviewLink");
     const followupBrandFilter = document.getElementById("followupBrandFilter");
     const followupStatusFilter = document.getElementById("followupStatusFilter");
     const followupPriorityFilter = document.getElementById("followupPriorityFilter");
@@ -1086,6 +1096,30 @@
     }
 
     async function postSharedData(payload) {
+      if (payload.record && payload.record.attachment) {
+        if (!isSharedDbConfigured) {
+          window.alert("Shared database is not configured yet. Paste the Apps Script Web App URL into SHARED_DB_URL first.");
+          return false;
+        }
+
+        setSyncStatus("Uploading attachment to shared database...");
+        try {
+          await fetch(SHARED_DB_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+          });
+          await new Promise((resolve) => window.setTimeout(resolve, 1800));
+          await loadSharedData();
+          return true;
+        } catch (error) {
+          setSyncStatus("Could not upload attachment. Check Apps Script deployment and Drive permissions.", "error");
+          window.alert("Could not upload attachment. Check Apps Script deployment and Drive permissions.");
+          return false;
+        }
+      }
+
       const params = { action: payload.action };
       if (payload.record) {
         params.record = JSON.stringify(payload.record);
@@ -1119,6 +1153,49 @@
 
     function todayISO() {
       return new Date().toISOString().slice(0, 10);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function attachmentLink(item) {
+      if (!item.attachmentUrl) {
+        return "No attachment";
+      }
+      return `<a href="${escapeHtml(item.attachmentUrl)}" target="_blank" rel="noopener">${escapeHtml(item.attachmentName || "Open attachment")}</a>`;
+    }
+
+    function readAttachmentFile(file) {
+      if (!file) {
+        return Promise.resolve(null);
+      }
+      const maxSize = 8 * 1024 * 1024;
+      if (file.size > maxSize) {
+        window.alert("Attachment is too large. Please upload a file up to 8 MB.");
+        return Promise.resolve(false);
+      }
+
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve({
+            name: file.name,
+            mimeType: file.type || "application/octet-stream",
+            data: result.split(",")[1] || ""
+          });
+        };
+        reader.onerror = () => {
+          window.alert("Could not read the selected attachment.");
+          resolve(false);
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     function statusClass(status) {
@@ -1242,6 +1319,14 @@
       form.elements.resolvedDate.value = item.resolvedDate || "";
       form.elements.issue.value = item.issue;
       form.elements.nextAction.value = item.nextAction || "";
+      form.elements.attachment.value = "";
+      if (item.attachmentUrl) {
+        attachmentPreview.classList.remove("hidden");
+        attachmentPreviewLink.innerHTML = attachmentLink(item);
+      } else {
+        attachmentPreview.classList.add("hidden");
+        attachmentPreviewLink.innerHTML = "";
+      }
       formTitle.textContent = "Edit Complaint";
       formMode.textContent = "Editing " + item.id;
       saveComplaint.textContent = "Save Changes";
@@ -1262,6 +1347,9 @@
       deleteCurrentCase.classList.add("hidden");
       form.elements.created.value = todayISO();
       form.elements.resolvedDate.value = "";
+      form.elements.attachment.value = "";
+      attachmentPreview.classList.add("hidden");
+      attachmentPreviewLink.innerHTML = "";
       if (hideForm) {
         formPanel.classList.add("hidden");
         complaintsView.classList.remove("form-only");
@@ -1329,6 +1417,7 @@
           <div class="info"><span>Owner</span><strong>${item.owner}</strong></div>
           <div class="info"><span>Date Logged</span><strong>${item.created || ""}</strong></div>
           <div class="info"><span>Date Resolved</span><strong>${item.resolvedDate || "Not resolved"}</strong></div>
+          <div class="info"><span>Attachment</span><strong>${attachmentLink(item)}</strong></div>
         </div>
         <div class="info">
           <span>Complaint Summary</span>
@@ -1386,6 +1475,7 @@
             <div class="followup-meta">
               ${item.brand} · ${item.vehicle} · ${item.owner}<br>
               Logged: ${item.created || "Not recorded"} · Resolved: ${item.resolvedDate || "Not resolved"}<br>
+              Attachment: ${attachmentLink(item)}<br>
               ${item.nextAction || "No next action recorded."}
             </div>
           </div>
@@ -1439,7 +1529,7 @@
     }
 
     function downloadComplaintsCsv(records, fileName) {
-      const headers = ["Case ID", "Brand", "Customer", "Phone", "Vehicle", "VIN / Plate", "Issue", "Status", "Priority", "Owner", "Date Logged", "Date Resolved", "Next Follow-up Action"];
+      const headers = ["Case ID", "Brand", "Customer", "Phone", "Vehicle", "VIN / Plate", "Issue", "Status", "Priority", "Owner", "Date Logged", "Date Resolved", "Attachment Name", "Attachment URL", "Next Follow-up Action"];
       const rows = records.map((item) => [
         item.id,
         item.brand,
@@ -1453,6 +1543,8 @@
         item.owner,
         item.created,
         item.resolvedDate,
+        item.attachmentName,
+        item.attachmentUrl,
         item.nextAction
       ]);
       const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
@@ -1535,6 +1627,10 @@
       event.preventDefault();
       const data = new FormData(form);
       const brand = data.get("brand");
+      const attachment = await readAttachmentFile(form.elements.attachment.files[0]);
+      if (attachment === false) {
+        return;
+      }
 
       if (editingId) {
         const item = {
@@ -1552,6 +1648,9 @@
           issue: data.get("issue"),
           nextAction: data.get("nextAction")
         };
+        if (attachment) {
+          item.attachment = attachment;
+        }
         selectedId = editingId;
         const saved = await postSharedData({
           action: "update",
@@ -1582,6 +1681,9 @@
         resolvedDate: data.get("resolvedDate"),
         nextAction: data.get("nextAction")
       };
+      if (attachment) {
+        item.attachment = attachment;
+      }
       selectedId = id;
       const saved = await postSharedData({
         action: "create",
