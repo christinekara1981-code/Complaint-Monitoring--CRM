@@ -1048,27 +1048,61 @@
       });
     }
 
-    async function postSharedData(payload) {
+    function requestSharedData(params, loadingMessage) {
       if (!isSharedDbConfigured) {
         window.alert("Shared database is not configured yet. Paste the Apps Script Web App URL into SHARED_DB_URL first.");
+        return Promise.resolve({ ok: false, error: "Shared database is not configured" });
+      }
+
+      setSyncStatus(loadingMessage || "Contacting shared database...");
+      return new Promise((resolve) => {
+        const callbackName = "bestuneCrmWriteCallback" + Date.now();
+        const script = document.createElement("script");
+        const separator = SHARED_DB_URL.includes("?") ? "&" : "?";
+        const query = new URLSearchParams({
+          ...params,
+          callback: callbackName,
+          t: String(Date.now())
+        });
+
+        window[callbackName] = (response) => {
+          delete window[callbackName];
+          script.remove();
+          resolve(response || { ok: false, error: "No response from shared database" });
+        };
+
+        script.onerror = () => {
+          delete window[callbackName];
+          script.remove();
+          resolve({ ok: false, error: "Could not reach shared database" });
+        };
+
+        script.src = SHARED_DB_URL + separator + query.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    async function postSharedData(payload) {
+      const params = { action: payload.action };
+      if (payload.record) {
+        params.record = JSON.stringify(payload.record);
+      }
+      if (payload.id) {
+        params.id = payload.id;
+      }
+      if (payload.password) {
+        params.password = payload.password;
+      }
+
+      const response = await requestSharedData(params, "Saving to shared database...");
+      if (!response.ok) {
+        setSyncStatus(response.error || "Could not save to shared database.", "error");
+        window.alert(response.error || "Could not save to shared database.");
         return false;
       }
 
-      setSyncStatus("Saving to shared database...");
-      try {
-        await fetch(SHARED_DB_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        await new Promise((resolve) => window.setTimeout(resolve, 900));
-        await loadSharedData();
-        return true;
-      } catch (error) {
-        setSyncStatus("Could not save to shared database. Check the Apps Script URL and deployment access.", "error");
-        return false;
-      }
+      await loadSharedData();
+      return true;
     }
 
     function daysOpen(created) {
