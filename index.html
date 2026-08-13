@@ -1096,30 +1096,6 @@
     }
 
     async function postSharedData(payload) {
-      if (payload.record && payload.record.attachment) {
-        if (!isSharedDbConfigured) {
-          window.alert("Shared database is not configured yet. Paste the Apps Script Web App URL into SHARED_DB_URL first.");
-          return false;
-        }
-
-        setSyncStatus("Uploading attachment to shared database...");
-        try {
-          await fetch(SHARED_DB_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
-          });
-          await new Promise((resolve) => window.setTimeout(resolve, 1800));
-          await loadSharedData();
-          return true;
-        } catch (error) {
-          setSyncStatus("Could not upload attachment. Check Apps Script deployment and Drive permissions.", "error");
-          window.alert("Could not upload attachment. Check Apps Script deployment and Drive permissions.");
-          return false;
-        }
-      }
-
       const params = { action: payload.action };
       if (payload.record) {
         params.record = JSON.stringify(payload.record);
@@ -1140,6 +1116,38 @@
 
       await loadSharedData();
       return true;
+    }
+
+    async function uploadCaseAttachment(id, attachment) {
+      if (!attachment) {
+        return true;
+      }
+      if (!isSharedDbConfigured) {
+        window.alert("Shared database is not configured yet. Paste the Apps Script Web App URL into SHARED_DB_URL first.");
+        return false;
+      }
+
+      setSyncStatus("Uploading attachment to Google Drive...");
+      try {
+        await fetch(SHARED_DB_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "uploadAttachment",
+            id,
+            attachment
+          })
+        });
+        await new Promise((resolve) => window.setTimeout(resolve, 2400));
+        await loadSharedData();
+        setSyncStatus("Complaint saved and attachment uploaded.", "ok");
+        return true;
+      } catch (error) {
+        setSyncStatus("Complaint was saved, but the attachment upload failed. Try a smaller file or redeploy Apps Script with Drive permission.", "error");
+        window.alert("Complaint was saved, but the attachment upload failed. Try a smaller file or redeploy Apps Script with Drive permission.");
+        return false;
+      }
     }
 
     function daysOpen(created) {
@@ -1174,9 +1182,9 @@
       if (!file) {
         return Promise.resolve(null);
       }
-      const maxSize = 8 * 1024 * 1024;
+      const maxSize = 4 * 1024 * 1024;
       if (file.size > maxSize) {
-        window.alert("Attachment is too large. Please upload a file up to 8 MB.");
+        window.alert("Attachment is too large. Please upload a file up to 4 MB.");
         return Promise.resolve(false);
       }
 
@@ -1648,9 +1656,6 @@
           issue: data.get("issue"),
           nextAction: data.get("nextAction")
         };
-        if (attachment) {
-          item.attachment = attachment;
-        }
         selectedId = editingId;
         const saved = await postSharedData({
           action: "update",
@@ -1658,6 +1663,9 @@
         });
         if (!saved) {
           return;
+        }
+        if (attachment) {
+          await uploadCaseAttachment(editingId, attachment);
         }
         resetFormMode(true);
         render();
@@ -1681,9 +1689,6 @@
         resolvedDate: data.get("resolvedDate"),
         nextAction: data.get("nextAction")
       };
-      if (attachment) {
-        item.attachment = attachment;
-      }
       selectedId = id;
       const saved = await postSharedData({
         action: "create",
@@ -1691,6 +1696,9 @@
       });
       if (!saved) {
         return;
+      }
+      if (attachment) {
+        await uploadCaseAttachment(id, attachment);
       }
       resetFormMode(true);
       render();
