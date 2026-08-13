@@ -850,6 +850,7 @@
             <div class="actions">
               <span class="form-mode" id="formMode">Creating a new case</span>
               <div class="button-row">
+                <button class="btn danger hidden" id="deleteCurrentCase" type="button">Delete Case</button>
                 <button class="btn secondary" id="cancelEdit" type="button">Cancel</button>
                 <button class="btn secondary" type="reset">Clear</button>
                 <button class="btn" id="saveComplaint" type="submit">Add Complaint</button>
@@ -966,6 +967,7 @@
     const formMode = document.getElementById("formMode");
     const saveComplaint = document.getElementById("saveComplaint");
     const cancelEdit = document.getElementById("cancelEdit");
+    const deleteCurrentCase = document.getElementById("deleteCurrentCase");
     const followupBrandFilter = document.getElementById("followupBrandFilter");
     const followupStatusFilter = document.getElementById("followupStatusFilter");
     const followupPriorityFilter = document.getElementById("followupPriorityFilter");
@@ -1116,6 +1118,7 @@
       formTitle.textContent = "Edit Complaint";
       formMode.textContent = "Editing " + item.id;
       saveComplaint.textContent = "Save Changes";
+      deleteCurrentCase.classList.remove("hidden");
       formPanel.classList.remove("hidden");
       complaintsView.classList.add("form-only");
       showView("complaintsView");
@@ -1129,6 +1132,7 @@
       formTitle.textContent = "New Complaint";
       formMode.textContent = "Creating a new case";
       saveComplaint.textContent = "Add Complaint";
+      deleteCurrentCase.classList.add("hidden");
       form.elements.created.value = todayISO();
       form.elements.resolvedDate.value = "";
       if (hideForm) {
@@ -1451,6 +1455,12 @@
     cancelEdit.addEventListener("click", () => {
       resetFormMode(true);
       showView(returnViewId);
+    });
+
+    deleteCurrentCase.addEventListener("click", () => {
+      if (editingId) {
+        deleteCase(editingId, returnViewId);
+      }
     });
 
     form.addEventListener("reset", () => {
