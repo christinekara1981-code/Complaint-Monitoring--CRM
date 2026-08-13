@@ -632,6 +632,26 @@
       text-align: center;
     }
 
+    .sync-status {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff8e6;
+      color: #7a4b00;
+      padding: 12px 14px;
+      font-weight: 700;
+    }
+
+    .sync-status.ok {
+      background: #e1f6ec;
+      color: var(--green-dark);
+    }
+
+    .sync-status.error {
+      background: #fee2e2;
+      color: var(--red);
+    }
+
     @media (max-width: 1080px) {
       .brand-stack {
         grid-template-columns: 1fr 1fr;
@@ -715,6 +735,8 @@
           <small>Escalation watchlist</small>
         </div>
       </section>
+
+      <div class="sync-status" id="syncStatus">Shared database is not configured yet.</div>
 
       <section class="workspace view" id="complaintsView">
         <div class="panel monitor-panel">
@@ -948,10 +970,9 @@
   </div>
 
   <script>
-    const storageKey = "bestuneComplaintCrm";
-    localStorage.removeItem("multibrandComplaintCrm");
-    let complaints = (JSON.parse(localStorage.getItem(storageKey) || "[]") || [])
-      .filter((item) => item.brand === "Bestune");
+    const SHARED_DB_URL = "https://script.google.com/macros/s/AKfycbwcT6HWR2E-S8HQgD32X9ptnQGF4MHksPGC4RcrCAnFl7D0p4tjy3SjT3gwYHHHCmCR/exec";
+    const isSharedDbConfigured = !SHARED_DB_URL.includes("PASTE_YOUR");
+    let complaints = [];
     let selectedId = complaints[0]?.id;
 
     const body = document.getElementById("complaintsBody");
@@ -974,17 +995,86 @@
     const followupSearchInput = document.getElementById("followupSearchInput");
     const followupList = document.getElementById("followupList");
     const downloadAllCsv = document.getElementById("downloadAllCsv");
+    const syncStatus = document.getElementById("syncStatus");
     const navButtons = document.querySelectorAll(".nav button");
     const views = document.querySelectorAll(".view");
 
     let editingId = null;
     let returnViewId = "reportsView";
 
-    function save() {
-      localStorage.setItem(storageKey, JSON.stringify(complaints));
+    function setSyncStatus(message, type = "") {
+      syncStatus.textContent = message;
+      syncStatus.className = "sync-status" + (type ? " " + type : "");
+    }
+
+    function loadSharedData() {
+      if (!isSharedDbConfigured) {
+        complaints = [];
+        setSyncStatus("Shared database is not configured yet. Paste your Apps Script Web App URL into SHARED_DB_URL inside index.html.", "error");
+        render();
+        return Promise.resolve(false);
+      }
+
+      setSyncStatus("Loading shared complaint records...");
+      return new Promise((resolve) => {
+        const callbackName = "bestuneCrmCallback" + Date.now();
+        const script = document.createElement("script");
+        const separator = SHARED_DB_URL.includes("?") ? "&" : "?";
+
+        window[callbackName] = (response) => {
+          delete window[callbackName];
+          script.remove();
+          if (response && response.ok) {
+            complaints = (response.records || []).filter((item) => item.brand === "Bestune");
+            selectedId = complaints[0]?.id;
+            setSyncStatus("Connected to shared Google Sheets database.", "ok");
+            render();
+            resolve(true);
+          } else {
+            setSyncStatus("Could not load shared records. Check the Apps Script deployment.", "error");
+            resolve(false);
+          }
+        };
+
+        script.onerror = () => {
+          delete window[callbackName];
+          script.remove();
+          setSyncStatus("Could not reach the shared database URL.", "error");
+          resolve(false);
+        };
+
+        script.src = SHARED_DB_URL + separator + "action=list&callback=" + callbackName + "&t=" + Date.now();
+        document.body.appendChild(script);
+      });
+    }
+
+    async function postSharedData(payload) {
+      if (!isSharedDbConfigured) {
+        window.alert("Shared database is not configured yet. Paste the Apps Script Web App URL into SHARED_DB_URL first.");
+        return false;
+      }
+
+      setSyncStatus("Saving to shared database...");
+      try {
+        await fetch(SHARED_DB_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        await new Promise((resolve) => window.setTimeout(resolve, 900));
+        await loadSharedData();
+        return true;
+      } catch (error) {
+        setSyncStatus("Could not save to shared database. Check the Apps Script URL and deployment access.", "error");
+        return false;
+      }
     }
 
     function daysOpen(created) {
+      if (!created) {
+        return 0;
+      }
       const today = new Date();
       const start = new Date(created + "T12:00:00");
       return Math.max(0, Math.round((today - start) / 86400000));
@@ -1150,7 +1240,7 @@
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    function deleteCase(id, sourceViewId = currentViewId()) {
+    async function deleteCase(id, sourceViewId = currentViewId()) {
       const item = complaints.find((complaint) => complaint.id === id);
       if (!item) {
         return;
@@ -1169,9 +1259,14 @@
         return;
       }
 
-      complaints = complaints.filter((complaint) => complaint.id !== id);
-      selectedId = complaints[0]?.id;
-      save();
+      const deleted = await postSharedData({
+        action: "delete",
+        id,
+        password
+      });
+      if (!deleted) {
+        return;
+      }
       resetFormMode(true);
       render();
       showView(sourceViewId === "complaintsView" ? "reportsView" : sourceViewId);
@@ -1399,14 +1494,14 @@
       control.addEventListener("input", render);
     });
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const data = new FormData(form);
       const brand = data.get("brand");
 
       if (editingId) {
-        complaints = complaints.map((item) => item.id === editingId ? {
-          ...item,
+        const item = {
+          id: editingId,
           brand,
           status: data.get("status"),
           customer: data.get("customer"),
@@ -1419,9 +1514,15 @@
           resolvedDate: data.get("resolvedDate"),
           issue: data.get("issue"),
           nextAction: data.get("nextAction")
-        } : item);
+        };
         selectedId = editingId;
-        save();
+        const saved = await postSharedData({
+          action: "update",
+          record: item
+        });
+        if (!saved) {
+          return;
+        }
         resetFormMode(true);
         render();
         showView(returnViewId);
@@ -1444,9 +1545,14 @@
         resolvedDate: data.get("resolvedDate"),
         nextAction: data.get("nextAction")
       };
-      complaints = [item, ...complaints];
       selectedId = id;
-      save();
+      const saved = await postSharedData({
+        action: "create",
+        record: item
+      });
+      if (!saved) {
+        return;
+      }
       resetFormMode(true);
       render();
       showView(returnViewId);
@@ -1498,7 +1604,7 @@
       control.addEventListener("input", renderFollowups);
     });
 
-    render();
+    loadSharedData();
   </script>
 </body>
 </html>
