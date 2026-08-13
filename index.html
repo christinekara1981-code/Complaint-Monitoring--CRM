@@ -1133,6 +1133,33 @@
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
+    function deleteCase(id, sourceViewId = currentViewId()) {
+      const item = complaints.find((complaint) => complaint.id === id);
+      if (!item) {
+        return;
+      }
+
+      const password = window.prompt("Enter password to delete case " + id);
+      if (password === null) {
+        return;
+      }
+      if (password !== "Bestune@2026") {
+        window.alert("Incorrect password. Case was not deleted.");
+        return;
+      }
+      const confirmed = window.confirm("Delete case " + id + " for " + item.customer + "?");
+      if (!confirmed) {
+        return;
+      }
+
+      complaints = complaints.filter((complaint) => complaint.id !== id);
+      selectedId = complaints[0]?.id;
+      save();
+      resetFormMode(true);
+      render();
+      showView(sourceViewId === "complaintsView" ? "reportsView" : sourceViewId);
+    }
+
     function renderDetail(item) {
       if (!item) {
         detail.innerHTML = '<div class="empty">Select a complaint to view case details.</div>';
@@ -1166,11 +1193,13 @@
         <div class="button-row">
           <button class="btn" type="button" data-edit-id="${item.id}">Edit Case</button>
           <button class="btn secondary" type="button" data-followup-id="${item.id}">View Follow-up</button>
+          <button class="btn danger" type="button" data-delete-id="${item.id}">Delete Case</button>
         </div>
       `;
 
       detail.querySelector("[data-edit-id]").addEventListener("click", () => startEdit(item.id, "reportsView"));
       detail.querySelector("[data-followup-id]").addEventListener("click", () => showView("followupsView"));
+      detail.querySelector("[data-delete-id]").addEventListener("click", () => deleteCase(item.id, "reportsView"));
     }
 
     function filteredFollowups() {
@@ -1216,6 +1245,7 @@
             <span class="tag priority-${item.priority}">${item.priority}</span>
             <button class="btn secondary" type="button" data-open-id="${item.id}">Open</button>
             <button class="btn" type="button" data-edit-id="${item.id}">Edit</button>
+            <button class="btn danger" type="button" data-delete-id="${item.id}">Delete</button>
           </div>
         `;
         card.querySelector("[data-open-id]").addEventListener("click", () => {
@@ -1224,6 +1254,7 @@
           render();
         });
         card.querySelector("[data-edit-id]").addEventListener("click", () => startEdit(item.id, "followupsView"));
+        card.querySelector("[data-delete-id]").addEventListener("click", () => deleteCase(item.id, "followupsView"));
         followupList.appendChild(card);
       });
     }
