@@ -515,6 +515,10 @@
       white-space: nowrap;
     }
 
+    .mini-btn.danger {
+      background: var(--red);
+    }
+
     .btn.danger {
       background: var(--red);
     }
@@ -1056,11 +1060,20 @@
           <td><span class="tag ${statusClass(item.status)}">${item.status}</span></td>
           <td><span class="tag priority-${item.priority}">${item.priority}</span></td>
           <td>${item.owner}</td>
-          <td><button class="mini-btn" type="button" data-row-edit="${item.id}">Edit</button></td>
+          <td>
+            <div class="button-row">
+              <button class="mini-btn" type="button" data-row-edit="${item.id}">Edit</button>
+              <button class="mini-btn danger" type="button" data-row-delete="${item.id}">Delete</button>
+            </div>
+          </td>
         `;
         row.querySelector("[data-row-edit]").addEventListener("click", (event) => {
           event.stopPropagation();
           startEdit(item.id);
+        });
+        row.querySelector("[data-row-delete]").addEventListener("click", (event) => {
+          event.stopPropagation();
+          deleteCase(item.id, "reportsView");
         });
         row.addEventListener("click", () => {
           selectedId = item.id;
