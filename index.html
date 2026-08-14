@@ -1,0 +1,1707 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Complaint Monitoring CRM</title>
+  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#b40f25">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18212b;
+      --muted: #66717d;
+      --line: #d8e0e6;
+      --soft: #f5f7f8;
+      --green: #087246;
+      --green-dark: #064a32;
+      --bestune: #b40f25;
+      --bestune-dark: #6f1220;
+      --gold: #b8891d;
+      --blue: #2563eb;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --white: #ffffff;
+      --shadow: 0 14px 34px rgba(24, 33, 43, .10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #eef2f3;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: block;
+    }
+
+    aside {
+      background: #15221f;
+      color: var(--white);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .brand-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .logo-card {
+      min-height: 74px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, .07);
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #fff;
+      flex: 0 0 42px;
+    }
+
+    .gm {
+      background: linear-gradient(135deg, var(--green), #0fa062);
+    }
+
+    .bt {
+      background: linear-gradient(135deg, var(--bestune), #d6a333);
+    }
+
+    .logo-card strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .logo-card span {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, .72);
+    }
+
+    .side-title {
+      margin: 8px 0 0;
+      font-size: 13px;
+      color: rgba(255, 255, 255, .70);
+      line-height: 1.5;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .nav button {
+      height: 42px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: rgba(255, 255, 255, .78);
+      text-align: left;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: rgba(255, 255, 255, .12);
+      color: var(--white);
+    }
+
+    main {
+      min-width: 0;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 36px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      max-width: 780px;
+      line-height: 1.5;
+    }
+
+    .date-pill {
+      min-width: 174px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      padding: 11px 14px;
+      color: var(--muted);
+      box-shadow: 0 6px 18px rgba(24, 33, 43, .06);
+    }
+
+    .date-pill strong {
+      display: block;
+      color: var(--ink);
+      margin-top: 2px;
+      font-size: 18px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .dashboard.three-metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 22px rgba(24, 33, 43, .07);
+      min-height: 114px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 12px;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .metric small {
+      display: block;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(320px, .85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .workspace.view.active {
+      display: grid;
+    }
+
+    .workspace.form-only {
+      grid-template-columns: minmax(0, 820px);
+      justify-content: center;
+    }
+
+    .workspace.form-only .monitor-panel,
+    .workspace.form-only .detail-panel {
+      display: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--soft);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #cbd5dc;
+      border-radius: 7px;
+      padding: 10px 11px;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 94px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 13px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      background: #fbfcfd;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    tr {
+      cursor: pointer;
+    }
+
+    tr:hover {
+      background: #f7fafb;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .brand-Green {
+      color: var(--green-dark);
+      background: #dff3e9;
+    }
+
+    .brand-Bestune {
+      color: var(--bestune-dark);
+      background: #fde3e7;
+    }
+
+    .status-Open {
+      color: var(--blue);
+      background: #e6efff;
+    }
+
+    .status-In {
+      color: var(--amber);
+      background: #fff2d8;
+    }
+
+    .status-Resolved {
+      color: var(--green-dark);
+      background: #e1f6ec;
+    }
+
+    .priority-High {
+      color: var(--red);
+      background: #fee2e2;
+    }
+
+    .priority-Medium {
+      color: var(--amber);
+      background: #fff4d8;
+    }
+
+    .priority-Low {
+      color: #475569;
+      background: #e7edf3;
+    }
+
+    .detail {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .detail-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .detail-title h3 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .info {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfcfd;
+    }
+
+    .info span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      border-left: 3px solid var(--green);
+      padding-left: 10px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .step strong {
+      display: block;
+      color: var(--ink);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      height: 42px;
+      border: 0;
+      border-radius: 7px;
+      padding: 0 14px;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--white);
+      background: var(--green);
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: #e6ecef;
+    }
+
+    .btn:hover {
+      filter: brightness(.96);
+    }
+
+    .mini-btn {
+      min-height: 32px;
+      border: 0;
+      border-radius: 7px;
+      padding: 6px 10px;
+      color: var(--white);
+      background: var(--green);
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .mini-btn.danger {
+      background: var(--red);
+    }
+
+    .btn.danger {
+      background: var(--red);
+    }
+
+    .form-mode {
+      min-height: 28px;
+      color: var(--muted);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .followup-list,
+    .report-grid,
+    .chart-list {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .followup-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      background: #fbfcfd;
+    }
+
+    .followup-item h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .followup-meta {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .report-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .report-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fbfcfd;
+      min-height: 150px;
+    }
+
+    .report-card h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr) 34px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bar-button {
+      width: 100%;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+      padding: 6px;
+      text-align: left;
+    }
+
+    .bar-button:hover,
+    .bar-button:focus {
+      background: #eef4f2;
+      outline: none;
+    }
+
+    .report-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #e7edf3;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+    }
+
+    .bar-fill.bestune {
+      background: var(--bestune);
+    }
+
+    .empty {
+      padding: 26px 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .sync-status {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff8e6;
+      color: #7a4b00;
+      padding: 12px 14px;
+      font-weight: 700;
+    }
+
+    .sync-status.ok {
+      background: #e1f6ec;
+      color: var(--green-dark);
+    }
+
+    .sync-status.error {
+      background: #fee2e2;
+      color: var(--red);
+    }
+
+    @media (max-width: 1080px) {
+      .brand-stack {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .dashboard,
+      .workspace {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .report-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 16px;
+      }
+
+      .topbar,
+      .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .date-pill {
+        min-width: 0;
+      }
+
+      .brand-stack,
+      .dashboard,
+      .filters,
+      .form-grid,
+      .info-grid,
+      .followup-item {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main>
+      <section class="topbar">
+        <div>
+          <h1>Complaint Monitoring CRM</h1>
+        </div>
+        <div class="date-pill">
+          Today
+          <strong id="todayLabel"></strong>
+        </div>
+      </section>
+
+      <section class="dashboard three-metrics" aria-label="Complaint summary">
+        <div class="metric">
+          <span>Total complaints</span>
+          <strong id="totalMetric">0</strong>
+          <small>Bestune records only</small>
+        </div>
+        <div class="metric">
+          <span>Open cases</span>
+          <strong id="openMetric">0</strong>
+          <small>Needs immediate ownership</small>
+        </div>
+        <div class="metric">
+          <span>High priority</span>
+          <strong id="highMetric">0</strong>
+          <small>Escalation watchlist</small>
+        </div>
+      </section>
+
+      <div class="sync-status" id="syncStatus">Shared database is not configured yet.</div>
+
+      <section class="workspace view" id="complaintsView">
+        <div class="panel monitor-panel">
+          <div class="panel-header">
+            <h2>Complaint Monitor</h2>
+            <div class="button-row">
+              <button class="btn secondary" type="button" data-dashboard>Dashboard</button>
+              <button class="btn" type="button" data-new-complaint>Add New Complaint</button>
+            </div>
+          </div>
+          <div class="filters">
+            <label>
+              Brand
+              <select id="brandFilter">
+                <option value="Bestune">Bestune</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select id="statusFilter">
+                <option value="All">All statuses</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </label>
+            <label>
+              Priority
+              <select id="priorityFilter">
+                <option value="All">All priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </label>
+            <label>
+              Search
+              <input id="searchInput" type="search" placeholder="Customer, VIN, issue">
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Case</th>
+                  <th>Brand</th>
+                  <th>Customer</th>
+                  <th>Vehicle</th>
+                  <th>Issue</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Owner</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="complaintsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel detail-panel">
+          <div class="panel-header">
+            <h2>Case Details</h2>
+          </div>
+          <div class="detail" id="caseDetail"></div>
+        </div>
+
+        <div class="panel hidden" id="formPanel">
+          <div class="panel-header">
+            <h2 id="formTitle">New Complaint</h2>
+            <button class="btn secondary" type="button" data-dashboard>Back to Report</button>
+          </div>
+          <form class="form-grid" id="complaintForm">
+            <input type="hidden" name="id">
+            <label>
+              Brand
+              <select name="brand" required>
+                <option value="Bestune">Bestune</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select name="status" required>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </label>
+            <label>
+              Customer name
+              <input name="customer" required placeholder="e.g. Ahmed Al Mansoori">
+            </label>
+            <label>
+              Phone
+              <input name="phone" required placeholder="+971 50 000 0000">
+            </label>
+            <label>
+              Vehicle
+              <input name="vehicle" required placeholder="Bestune T77, B70, T99">
+            </label>
+            <label>
+              VIN / Plate
+              <input name="vin" required placeholder="VIN or plate number">
+            </label>
+            <label>
+              Priority
+              <select name="priority" required>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Low">Low</option>
+              </select>
+            </label>
+            <label>
+              Owner
+              <input name="owner" required placeholder="Service advisor">
+            </label>
+            <label>
+              Date Logged
+              <input name="created" type="date" required>
+            </label>
+            <label>
+              Date Resolved
+              <input name="resolvedDate" type="date">
+            </label>
+            <label class="wide">
+              Complaint
+              <textarea name="issue" required placeholder="Describe the service complaint"></textarea>
+            </label>
+            <label class="wide">
+              Next Follow-up Action
+              <textarea name="nextAction" required placeholder="What should the service team do next?"></textarea>
+            </label>
+            <label>
+              Attachment Name
+              <input name="attachmentName" placeholder="e.g. Job card, invoice, photo">
+            </label>
+            <label>
+              Attachment Link
+              <input name="attachmentUrl" type="url" placeholder="Paste Google Drive file link">
+            </label>
+            <div class="info wide hidden" id="attachmentPreview">
+              <span>Current Attachment</span>
+              <strong id="attachmentPreviewLink"></strong>
+            </div>
+            <div class="actions">
+              <span class="form-mode" id="formMode">Creating a new case</span>
+              <div class="button-row">
+                <button class="btn danger hidden" id="deleteCurrentCase" type="button">Delete Case</button>
+                <button class="btn secondary" id="cancelEdit" type="button">Cancel</button>
+                <button class="btn secondary" type="reset">Clear</button>
+                <button class="btn" id="saveComplaint" type="submit">Add Complaint</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="view" id="followupsView">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Follow-up Worklist</h2>
+            <div class="button-row">
+              <button class="btn secondary" type="button" data-dashboard>Dashboard</button>
+              <button class="btn" type="button" data-new-complaint>Add New Complaint</button>
+            </div>
+          </div>
+          <div class="filters">
+            <label>
+              Brand
+              <select id="followupBrandFilter">
+                <option value="Bestune">Bestune</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select id="followupStatusFilter">
+                <option value="Active">Active follow-ups</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="All">All statuses</option>
+              </select>
+            </label>
+            <label>
+              Priority
+              <select id="followupPriorityFilter">
+                <option value="All">All priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </label>
+            <label>
+              Search
+              <input id="followupSearchInput" type="search" placeholder="Customer, owner, action">
+            </label>
+          </div>
+          <div class="followup-list" id="followupList"></div>
+        </div>
+      </section>
+
+      <section class="view active" id="reportsView">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Complaint Reports Dashboard</h2>
+            <div class="button-row">
+              <button class="btn secondary" type="button" data-followups>Follow-ups</button>
+              <button class="btn" type="button" data-new-complaint>Add New Complaint</button>
+            </div>
+          </div>
+          <div class="report-grid">
+            <div class="report-card">
+              <h3>Brand Mix</h3>
+              <div class="report-actions">
+                <button class="btn secondary" type="button" id="downloadAllCsv">Download All CSV</button>
+              </div>
+              <div class="chart-list" id="brandReport"></div>
+            </div>
+            <div class="report-card">
+              <h3>Status Pipeline</h3>
+              <div class="chart-list" id="statusReport"></div>
+            </div>
+            <div class="report-card">
+              <h3>Priority Risk</h3>
+              <div class="chart-list" id="priorityReport"></div>
+            </div>
+            <div class="report-card">
+              <h3>Operational KPIs</h3>
+              <div class="info-grid" id="kpiReport"></div>
+            </div>
+            <div class="report-card">
+              <h3>Top Service Issues</h3>
+              <div class="chart-list" id="issueReport"></div>
+            </div>
+            <div class="report-card">
+              <h3>Advisor Load</h3>
+              <div class="chart-list" id="ownerReport"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const SHARED_DB_URL = "https://script.google.com/macros/s/AKfycbwcT6HWR2E-S8HQgD32X9ptnQGF4MHksPGC4RcrCAnFl7D0p4tjy3SjT3gwYHHHCmCR/exec";
+    const isSharedDbConfigured = !SHARED_DB_URL.includes("PASTE_YOUR");
+    let complaints = [];
+    let selectedId = complaints[0]?.id;
+
+    const body = document.getElementById("complaintsBody");
+    const detail = document.getElementById("caseDetail");
+    const complaintsView = document.getElementById("complaintsView");
+    const brandFilter = document.getElementById("brandFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const priorityFilter = document.getElementById("priorityFilter");
+    const searchInput = document.getElementById("searchInput");
+    const form = document.getElementById("complaintForm");
+    const formPanel = document.getElementById("formPanel");
+    const formTitle = document.getElementById("formTitle");
+    const formMode = document.getElementById("formMode");
+    const saveComplaint = document.getElementById("saveComplaint");
+    const cancelEdit = document.getElementById("cancelEdit");
+    const deleteCurrentCase = document.getElementById("deleteCurrentCase");
+    const attachmentPreview = document.getElementById("attachmentPreview");
+    const attachmentPreviewLink = document.getElementById("attachmentPreviewLink");
+    const followupBrandFilter = document.getElementById("followupBrandFilter");
+    const followupStatusFilter = document.getElementById("followupStatusFilter");
+    const followupPriorityFilter = document.getElementById("followupPriorityFilter");
+    const followupSearchInput = document.getElementById("followupSearchInput");
+    const followupList = document.getElementById("followupList");
+    const downloadAllCsv = document.getElementById("downloadAllCsv");
+    const syncStatus = document.getElementById("syncStatus");
+    const navButtons = document.querySelectorAll(".nav button");
+    const views = document.querySelectorAll(".view");
+
+    let editingId = null;
+    let returnViewId = "reportsView";
+
+    function setSyncStatus(message, type = "") {
+      syncStatus.textContent = message;
+      syncStatus.className = "sync-status" + (type ? " " + type : "");
+    }
+
+    function loadSharedData() {
+      if (!isSharedDbConfigured) {
+        complaints = [];
+        setSyncStatus("Shared database is not configured yet. Paste your Apps Script Web App URL into SHARED_DB_URL inside index.html.", "error");
+        render();
+        return Promise.resolve(false);
+      }
+
+      setSyncStatus("Loading shared complaint records...");
+      return new Promise((resolve) => {
+        const callbackName = "bestuneCrmCallback" + Date.now();
+        const script = document.createElement("script");
+        const separator = SHARED_DB_URL.includes("?") ? "&" : "?";
+
+        window[callbackName] = (response) => {
+          delete window[callbackName];
+          script.remove();
+          if (response && response.ok) {
+            complaints = (response.records || []).filter((item) => item.brand === "Bestune");
+            selectedId = complaints[0]?.id;
+            setSyncStatus("Connected to shared Google Sheets database.", "ok");
+            render();
+            resolve(true);
+          } else {
+            setSyncStatus("Could not load shared records. Check the Apps Script deployment.", "error");
+            resolve(false);
+          }
+        };
+
+        script.onerror = () => {
+          delete window[callbackName];
+          script.remove();
+          setSyncStatus("Could not reach the shared database URL.", "error");
+          resolve(false);
+        };
+
+        script.src = SHARED_DB_URL + separator + "action=list&callback=" + callbackName + "&t=" + Date.now();
+        document.body.appendChild(script);
+      });
+    }
+
+    function requestSharedData(params, loadingMessage) {
+      if (!isSharedDbConfigured) {
+        window.alert("Shared database is not configured yet. Paste the Apps Script Web App URL into SHARED_DB_URL first.");
+        return Promise.resolve({ ok: false, error: "Shared database is not configured" });
+      }
+
+      setSyncStatus(loadingMessage || "Contacting shared database...");
+      return new Promise((resolve) => {
+        const callbackName = "bestuneCrmWriteCallback" + Date.now();
+        const script = document.createElement("script");
+        const separator = SHARED_DB_URL.includes("?") ? "&" : "?";
+        const query = new URLSearchParams({
+          ...params,
+          callback: callbackName,
+          t: String(Date.now())
+        });
+
+        window[callbackName] = (response) => {
+          delete window[callbackName];
+          script.remove();
+          resolve(response || { ok: false, error: "No response from shared database" });
+        };
+
+        script.onerror = () => {
+          delete window[callbackName];
+          script.remove();
+          resolve({ ok: false, error: "Could not reach shared database" });
+        };
+
+        script.src = SHARED_DB_URL + separator + query.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    async function postSharedData(payload) {
+      const params = { action: payload.action };
+      if (payload.record) {
+        params.record = JSON.stringify(payload.record);
+      }
+      if (payload.id) {
+        params.id = payload.id;
+      }
+      if (payload.password) {
+        params.password = payload.password;
+      }
+
+      const response = await requestSharedData(params, "Saving to shared database...");
+      if (!response.ok) {
+        setSyncStatus(response.error || "Could not save to shared database.", "error");
+        window.alert(response.error || "Could not save to shared database.");
+        return false;
+      }
+
+      await loadSharedData();
+      return true;
+    }
+
+    function daysOpen(created) {
+      if (!created) {
+        return 0;
+      }
+      const today = new Date();
+      const start = new Date(created + "T12:00:00");
+      return Math.max(0, Math.round((today - start) / 86400000));
+    }
+
+    function todayISO() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function updateTodayLabel() {
+      const label = document.getElementById("todayLabel");
+      label.textContent = new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).replace(",", "");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function attachmentLink(item) {
+      if (!item.attachmentUrl) {
+        return "No attachment";
+      }
+      return `<a href="${escapeHtml(item.attachmentUrl)}" target="_blank" rel="noopener">${escapeHtml(item.attachmentName || "Open attachment")}</a>`;
+    }
+
+    function statusClass(status) {
+      return "status-" + status.split(" ")[0];
+    }
+
+    function showView(viewId) {
+      views.forEach((view) => view.classList.toggle("active", view.id === viewId));
+      navButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === viewId));
+      if (viewId === "followupsView") {
+        complaintsView.classList.remove("form-only");
+        renderFollowups();
+      }
+      if (viewId === "reportsView") {
+        complaintsView.classList.remove("form-only");
+        renderReports();
+      }
+    }
+
+    function currentViewId() {
+      return document.querySelector(".view.active")?.id || "reportsView";
+    }
+
+    function filteredComplaints() {
+      const term = searchInput.value.trim().toLowerCase();
+      return complaints.filter((item) => {
+        const matchesBrand = item.brand === "Bestune";
+        const matchesStatus = statusFilter.value === "All" || item.status === statusFilter.value;
+        const matchesPriority = priorityFilter.value === "All" || item.priority === priorityFilter.value;
+        const haystack = [item.id, item.brand, item.customer, item.phone, item.vehicle, item.vin, item.issue, item.owner].join(" ").toLowerCase();
+        return matchesBrand && matchesStatus && matchesPriority && haystack.includes(term);
+      });
+    }
+
+    function renderMetrics() {
+      const open = complaints.filter((item) => item.status !== "Resolved");
+      const high = complaints.filter((item) => item.priority === "High" && item.status !== "Resolved");
+
+      document.getElementById("totalMetric").textContent = complaints.length;
+      document.getElementById("openMetric").textContent = open.length;
+      document.getElementById("highMetric").textContent = high.length;
+    }
+
+    function renderTable() {
+      const rows = filteredComplaints();
+      body.innerHTML = "";
+
+      if (!rows.length) {
+        body.innerHTML = '<tr><td class="empty" colspan="9">No complaints match the current filters.</td></tr>';
+        renderDetail(null);
+        return;
+      }
+
+      if (!rows.some((item) => item.id === selectedId)) {
+        selectedId = rows[0].id;
+      }
+
+      rows.forEach((item) => {
+        const row = document.createElement("tr");
+        row.tabIndex = 0;
+        row.setAttribute("aria-label", "Open complaint " + item.id);
+        row.innerHTML = `
+          <td><strong>${item.id}</strong><br><span>${daysOpen(item.created)} days old</span></td>
+          <td><span class="tag brand-${item.brand.split(" ")[0]}">${item.brand}</span></td>
+          <td>${item.customer}<br><span>${item.phone}</span></td>
+          <td>${item.vehicle}<br><span>${item.vin}</span></td>
+          <td>${item.issue}</td>
+          <td><span class="tag ${statusClass(item.status)}">${item.status}</span></td>
+          <td><span class="tag priority-${item.priority}">${item.priority}</span></td>
+          <td>${item.owner}</td>
+          <td>
+            <div class="button-row">
+              <button class="mini-btn" type="button" data-row-edit="${item.id}">Edit</button>
+              <button class="mini-btn danger" type="button" data-row-delete="${item.id}">Delete</button>
+            </div>
+          </td>
+        `;
+        row.querySelector("[data-row-edit]").addEventListener("click", (event) => {
+          event.stopPropagation();
+          startEdit(item.id);
+        });
+        row.querySelector("[data-row-delete]").addEventListener("click", (event) => {
+          event.stopPropagation();
+          deleteCase(item.id, "reportsView");
+        });
+        row.addEventListener("click", () => {
+          selectedId = item.id;
+          render();
+        });
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectedId = item.id;
+            render();
+          }
+        });
+        body.appendChild(row);
+      });
+
+      renderDetail(complaints.find((item) => item.id === selectedId));
+    }
+
+    function startEdit(id, sourceViewId = currentViewId()) {
+      const item = complaints.find((complaint) => complaint.id === id);
+      if (!item) {
+        return;
+      }
+
+      returnViewId = sourceViewId === "complaintsView" ? "reportsView" : sourceViewId;
+      editingId = id;
+      form.elements.id.value = item.id;
+      form.elements.brand.value = item.brand;
+      form.elements.status.value = item.status;
+      form.elements.customer.value = item.customer;
+      form.elements.phone.value = item.phone;
+      form.elements.vehicle.value = item.vehicle;
+      form.elements.vin.value = item.vin;
+      form.elements.priority.value = item.priority;
+      form.elements.owner.value = item.owner;
+      form.elements.created.value = item.created || todayISO();
+      form.elements.resolvedDate.value = item.resolvedDate || "";
+      form.elements.issue.value = item.issue;
+      form.elements.nextAction.value = item.nextAction || "";
+      form.elements.attachmentName.value = item.attachmentName || "";
+      form.elements.attachmentUrl.value = item.attachmentUrl || "";
+      if (item.attachmentUrl) {
+        attachmentPreview.classList.remove("hidden");
+        attachmentPreviewLink.innerHTML = attachmentLink(item);
+      } else {
+        attachmentPreview.classList.add("hidden");
+        attachmentPreviewLink.innerHTML = "";
+      }
+      formTitle.textContent = "Edit Complaint";
+      formMode.textContent = "Editing " + item.id;
+      saveComplaint.textContent = "Save Changes";
+      deleteCurrentCase.classList.remove("hidden");
+      formPanel.classList.remove("hidden");
+      complaintsView.classList.add("form-only");
+      showView("complaintsView");
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function resetFormMode(hideForm = true) {
+      editingId = null;
+      form.reset();
+      form.elements.id.value = "";
+      formTitle.textContent = "New Complaint";
+      formMode.textContent = "Creating a new case";
+      saveComplaint.textContent = "Add Complaint";
+      deleteCurrentCase.classList.add("hidden");
+      form.elements.created.value = todayISO();
+      form.elements.resolvedDate.value = "";
+      form.elements.attachmentName.value = "";
+      form.elements.attachmentUrl.value = "";
+      attachmentPreview.classList.add("hidden");
+      attachmentPreviewLink.innerHTML = "";
+      if (hideForm) {
+        formPanel.classList.add("hidden");
+        complaintsView.classList.remove("form-only");
+      }
+    }
+
+    function openNewComplaintForm(sourceViewId = currentViewId()) {
+      returnViewId = sourceViewId === "complaintsView" ? "reportsView" : sourceViewId;
+      resetFormMode(false);
+      formPanel.classList.remove("hidden");
+      complaintsView.classList.add("form-only");
+      showView("complaintsView");
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function deleteCase(id, sourceViewId = currentViewId()) {
+      const item = complaints.find((complaint) => complaint.id === id);
+      if (!item) {
+        return;
+      }
+
+      const password = window.prompt("Enter password to delete case " + id);
+      if (password === null) {
+        return;
+      }
+      if (password !== "Bestune@2026") {
+        window.alert("Incorrect password. Case was not deleted.");
+        return;
+      }
+      const confirmed = window.confirm("Delete case " + id + " for " + item.customer + "?");
+      if (!confirmed) {
+        return;
+      }
+
+      const deleted = await postSharedData({
+        action: "delete",
+        id,
+        password
+      });
+      if (!deleted) {
+        return;
+      }
+      resetFormMode(true);
+      render();
+      showView(sourceViewId === "complaintsView" ? "reportsView" : sourceViewId);
+    }
+
+    function renderDetail(item) {
+      if (!item) {
+        detail.innerHTML = '<div class="empty">Select a complaint to view case details.</div>';
+        return;
+      }
+
+      detail.innerHTML = `
+        <div class="detail-title">
+          <h3>${item.customer}</h3>
+          <span class="tag priority-${item.priority}">${item.priority}</span>
+        </div>
+        <span class="tag brand-${item.brand.split(" ")[0]}">${item.brand}</span>
+        <div class="info-grid">
+          <div class="info"><span>Case ID</span><strong>${item.id}</strong></div>
+          <div class="info"><span>Status</span><strong>${item.status}</strong></div>
+          <div class="info"><span>Vehicle</span><strong>${item.vehicle}</strong></div>
+          <div class="info"><span>VIN / Plate</span><strong>${item.vin}</strong></div>
+          <div class="info"><span>Owner</span><strong>${item.owner}</strong></div>
+          <div class="info"><span>Date Logged</span><strong>${item.created || ""}</strong></div>
+          <div class="info"><span>Date Resolved</span><strong>${item.resolvedDate || "Not resolved"}</strong></div>
+          <div class="info"><span>Attachment</span><strong>${attachmentLink(item)}</strong></div>
+        </div>
+        <div class="info">
+          <span>Complaint Summary</span>
+          <strong>${item.issue}</strong>
+        </div>
+        <div class="timeline" aria-label="Case timeline">
+          <div class="step"><strong>Complaint received</strong>${item.created || "Not recorded"} through service reception.</div>
+          <div class="step"><strong>Next action</strong>${item.nextAction}</div>
+          <div class="step"><strong>Customer recovery</strong>Confirm resolution, document root cause, and complete satisfaction callback.</div>
+        </div>
+        <div class="button-row">
+          <button class="btn" type="button" data-edit-id="${item.id}">Edit Case</button>
+          <button class="btn secondary" type="button" data-followup-id="${item.id}">View Follow-up</button>
+          <button class="btn danger" type="button" data-delete-id="${item.id}">Delete Case</button>
+        </div>
+      `;
+
+      detail.querySelector("[data-edit-id]").addEventListener("click", () => startEdit(item.id, "reportsView"));
+      detail.querySelector("[data-followup-id]").addEventListener("click", () => showView("followupsView"));
+      detail.querySelector("[data-delete-id]").addEventListener("click", () => deleteCase(item.id, "reportsView"));
+    }
+
+    function filteredFollowups() {
+      const term = followupSearchInput.value.trim().toLowerCase();
+      return complaints.filter((item) => {
+        const matchesBrand = item.brand === "Bestune";
+        const matchesStatus =
+          followupStatusFilter.value === "All" ||
+          (followupStatusFilter.value === "Active" && item.status !== "Resolved") ||
+          item.status === followupStatusFilter.value;
+        const matchesPriority = followupPriorityFilter.value === "All" || item.priority === followupPriorityFilter.value;
+        const haystack = [item.id, item.customer, item.owner, item.vehicle, item.issue, item.nextAction].join(" ").toLowerCase();
+        return matchesBrand && matchesStatus && matchesPriority && haystack.includes(term);
+      });
+    }
+
+    function renderFollowups() {
+      const rows = filteredFollowups().sort((a, b) => {
+        const priorityRank = { High: 0, Medium: 1, Low: 2 };
+        return priorityRank[a.priority] - priorityRank[b.priority] || daysOpen(b.created) - daysOpen(a.created);
+      });
+
+      followupList.innerHTML = "";
+      if (!rows.length) {
+        followupList.innerHTML = '<div class="empty">No follow-ups match the current filters.</div>';
+        return;
+      }
+
+      rows.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "followup-item";
+        card.innerHTML = `
+          <div>
+            <h3>${item.id} · ${item.customer}</h3>
+            <div class="followup-meta">
+              ${item.brand} · ${item.vehicle} · ${item.owner}<br>
+              Logged: ${item.created || "Not recorded"} · Resolved: ${item.resolvedDate || "Not resolved"}<br>
+              Attachment: ${attachmentLink(item)}<br>
+              ${item.nextAction || "No next action recorded."}
+            </div>
+          </div>
+          <div class="button-row">
+            <span class="tag ${statusClass(item.status)}">${item.status}</span>
+            <span class="tag priority-${item.priority}">${item.priority}</span>
+            <button class="btn secondary" type="button" data-open-id="${item.id}">Open</button>
+            <button class="btn" type="button" data-edit-id="${item.id}">Edit</button>
+            <button class="btn danger" type="button" data-delete-id="${item.id}">Delete</button>
+          </div>
+        `;
+        card.querySelector("[data-open-id]").addEventListener("click", () => {
+          selectedId = item.id;
+          showView("complaintsView");
+          render();
+        });
+        card.querySelector("[data-edit-id]").addEventListener("click", () => startEdit(item.id, "followupsView"));
+        card.querySelector("[data-delete-id]").addEventListener("click", () => deleteCase(item.id, "followupsView"));
+        followupList.appendChild(card);
+      });
+    }
+
+    function countsBy(field) {
+      return complaints.reduce((totals, item) => {
+        const key = item[field] || "Unassigned";
+        totals[key] = (totals[key] || 0) + 1;
+        return totals;
+      }, {});
+    }
+
+    function renderBars(targetId, data, className = "") {
+      const target = document.getElementById(targetId);
+      const max = Math.max(1, ...Object.values(data));
+      const entries = Object.entries(data);
+      if (!entries.length) {
+        target.innerHTML = '<div class="empty">No records yet.</div>';
+        return;
+      }
+      target.innerHTML = entries.map(([label, value]) => `
+        <div class="bar-row">
+          <span>${label}</span>
+          <div class="bar-track"><div class="bar-fill ${className}" style="width:${Math.max(8, (value / max) * 100)}%"></div></div>
+          <strong>${value}</strong>
+        </div>
+      `).join("");
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    function downloadComplaintsCsv(records, fileName) {
+      const headers = ["Case ID", "Brand", "Customer", "Phone", "Vehicle", "VIN / Plate", "Issue", "Status", "Priority", "Owner", "Date Logged", "Date Resolved", "Attachment Name", "Attachment URL", "Next Follow-up Action"];
+      const rows = records.map((item) => [
+        item.id,
+        item.brand,
+        item.customer,
+        item.phone,
+        item.vehicle,
+        item.vin,
+        item.issue,
+        item.status,
+        item.priority,
+        item.owner,
+        item.created,
+        item.resolvedDate,
+        item.attachmentName,
+        item.attachmentUrl,
+        item.nextAction
+      ]);
+      const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      URL.revokeObjectURL(link.href);
+      link.remove();
+    }
+
+    function renderBrandReport() {
+      const target = document.getElementById("brandReport");
+      const data = countsBy("brand");
+      const max = Math.max(1, ...Object.values(data));
+      const entries = Object.entries(data);
+      if (!entries.length) {
+        target.innerHTML = '<div class="empty">No Bestune complaints yet.</div>';
+        return;
+      }
+      target.innerHTML = entries.map(([label, value]) => `
+        <button class="bar-button" type="button" data-brand-download="${label}">
+          <div class="bar-row">
+            <span>${label}</span>
+            <div class="bar-track"><div class="bar-fill ${label === "Bestune" ? "bestune" : ""}" style="width:${Math.max(8, (value / max) * 100)}%"></div></div>
+            <strong>${value}</strong>
+          </div>
+        </button>
+      `).join("");
+
+      target.querySelectorAll("[data-brand-download]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const brand = button.dataset.brandDownload;
+          const records = complaints.filter((item) => item.brand === brand);
+          const safeBrand = brand.toLowerCase().replace(/\s+/g, "-");
+          downloadComplaintsCsv(records, safeBrand + "-complaints.csv");
+        });
+      });
+    }
+
+    function renderReports() {
+      const open = complaints.filter((item) => item.status !== "Resolved");
+      const resolved = complaints.filter((item) => item.status === "Resolved");
+      const highOpen = open.filter((item) => item.priority === "High");
+      renderBrandReport();
+      renderBars("statusReport", countsBy("status"));
+      renderBars("priorityReport", countsBy("priority"), "bestune");
+      renderBars("ownerReport", countsBy("owner"));
+
+      document.getElementById("kpiReport").innerHTML = `
+        <div class="info"><span>Resolution rate</span><strong>${Math.round((resolved.length / Math.max(1, complaints.length)) * 100)}%</strong></div>
+        <div class="info"><span>Active high risk</span><strong>${highOpen.length}</strong></div>
+        <div class="info"><span>Open follow-ups</span><strong>${open.length}</strong></div>
+        <div class="info"><span>Total Bestune records</span><strong>${complaints.length}</strong></div>
+      `;
+
+      const issueGroups = {
+        "Repeat repair": complaints.filter((item) => /repeat|returned|vibration|engine/i.test(item.issue)).length,
+        "Parts delay": complaints.filter((item) => /parts|eta|delay/i.test(item.issue)).length,
+        "Customer care": complaints.filter((item) => /communication|washing|callback|unhappy/i.test(item.issue)).length,
+        "Warranty/technical": complaints.filter((item) => /warranty|diagnostic|technical|ac/i.test(item.issue)).length
+      };
+      renderBars("issueReport", issueGroups);
+    }
+
+    function render() {
+      renderMetrics();
+      renderTable();
+      renderFollowups();
+      renderReports();
+    }
+
+    [brandFilter, statusFilter, priorityFilter, searchInput].forEach((control) => {
+      control.addEventListener("input", render);
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const brand = data.get("brand");
+
+      if (editingId) {
+        const item = {
+          id: editingId,
+          brand,
+          status: data.get("status"),
+          customer: data.get("customer"),
+          phone: data.get("phone"),
+          vehicle: data.get("vehicle"),
+          vin: data.get("vin"),
+          priority: data.get("priority"),
+          owner: data.get("owner"),
+          created: data.get("created"),
+          resolvedDate: data.get("resolvedDate"),
+          issue: data.get("issue"),
+          nextAction: data.get("nextAction"),
+          attachmentName: data.get("attachmentName"),
+          attachmentUrl: data.get("attachmentUrl")
+        };
+        selectedId = editingId;
+        const saved = await postSharedData({
+          action: "update",
+          record: item
+        });
+        if (!saved) {
+          return;
+        }
+        resetFormMode(true);
+        render();
+        showView(returnViewId);
+        return;
+      }
+
+      const id = "BT-" + String(Math.floor(3000 + Math.random() * 6000));
+      const item = {
+        id,
+        brand,
+        status: data.get("status"),
+        customer: data.get("customer"),
+        phone: data.get("phone"),
+        vehicle: data.get("vehicle"),
+        vin: data.get("vin"),
+        priority: data.get("priority"),
+        owner: data.get("owner"),
+        issue: data.get("issue"),
+        created: data.get("created"),
+        resolvedDate: data.get("resolvedDate"),
+        nextAction: data.get("nextAction"),
+        attachmentName: data.get("attachmentName"),
+        attachmentUrl: data.get("attachmentUrl")
+      };
+      selectedId = id;
+      const saved = await postSharedData({
+        action: "create",
+        record: item
+      });
+      if (!saved) {
+        return;
+      }
+      resetFormMode(true);
+      render();
+      showView(returnViewId);
+    });
+
+    cancelEdit.addEventListener("click", () => {
+      resetFormMode(true);
+      showView(returnViewId);
+    });
+
+    deleteCurrentCase.addEventListener("click", () => {
+      if (editingId) {
+        deleteCase(editingId, returnViewId);
+      }
+    });
+
+    form.addEventListener("reset", () => {
+      window.setTimeout(() => {
+        if (!editingId) {
+          form.elements.id.value = "";
+        }
+      }, 0);
+    });
+
+    navButtons.forEach((button) => {
+      button.addEventListener("click", () => showView(button.dataset.view));
+    });
+
+    document.querySelectorAll("[data-new-complaint]").forEach((button) => {
+      button.addEventListener("click", () => openNewComplaintForm(currentViewId()));
+    });
+
+    document.querySelectorAll("[data-dashboard]").forEach((button) => {
+      button.addEventListener("click", () => {
+        resetFormMode(true);
+        showView("reportsView");
+      });
+    });
+
+    document.querySelectorAll("[data-followups]").forEach((button) => {
+      button.addEventListener("click", () => showView("followupsView"));
+    });
+
+    downloadAllCsv.addEventListener("click", () => {
+      downloadComplaintsCsv(complaints, "all-complaints.csv");
+    });
+
+    [followupBrandFilter, followupStatusFilter, followupPriorityFilter, followupSearchInput].forEach((control) => {
+      control.addEventListener("input", renderFollowups);
+    });
+
+    updateTodayLabel();
+    loadSharedData();
+  </script>
+</body>
+</html>
