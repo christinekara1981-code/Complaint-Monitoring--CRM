@@ -717,7 +717,7 @@
         </div>
         <div class="date-pill">
           Today
-          <strong id="todayLabel">13 Aug 2026</strong>
+          <strong id="todayLabel"></strong>
         </div>
       </section>
 
@@ -1133,6 +1133,15 @@
 
     function todayISO() {
       return new Date().toISOString().slice(0, 10);
+    }
+
+    function updateTodayLabel() {
+      const label = document.getElementById("todayLabel");
+      label.textContent = new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).replace(",", "");
     }
 
     function escapeHtml(value) {
@@ -1691,6 +1700,7 @@
       control.addEventListener("input", renderFollowups);
     });
 
+    updateTodayLabel();
     loadSharedData();
   </script>
 </body>
